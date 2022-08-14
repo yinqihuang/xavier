@@ -23,6 +23,9 @@ import pandas as pd
 
 import os
 
+# import Py3GUI swlda
+from swlda import swlda
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
@@ -290,7 +293,7 @@ def main():
             print("Setting up mindfulness params")
             # First arg: MINDFULNESS = 0, RESTFULNESS = 1, USER_DEFINED = 2
             # Second arg: DEFAULT_CLASSIFIER = 0, DYN_LIB_CLASSIFIER = 1, ONNX_CLASSIFIER = 2
-            mindfulness_params = BrainFlowModelParams(0,0)
+            mindfulness_params = BrainFlowModelParams(0,2)
             print("mindfulness_params:", mindfulness_params)
             mindfulness = MLModel(mindfulness_params)
             mindfulness.prepare()
@@ -300,7 +303,7 @@ def main():
             print("Setting up restfulness params")
             # First arg: MINDFULNESS = 0, RESTFULNESS = 1, USER_DEFINED = 2
             # Second arg: DEFAULT_CLASSIFIER = 0, DYN_LIB_CLASSIFIER = 1, ONNX_CLASSIFIER = 2
-            restfulness_params = BrainFlowModelParams(1,0)
+            restfulness_params = BrainFlowModelParams(1,2)
             restfulness = MLModel(restfulness_params)
             restfulness.prepare()
             print('Restfulness: %s' % str(restfulness.predict(feature_vector)))
