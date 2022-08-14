@@ -17,6 +17,8 @@ Training a pipeline
 """
 from pyquickhelper.helpgen.graphviz_helper import plot_graphviz
 import numpy as np
+import pandas as pd
+
 from onnxruntime import InferenceSession
 from sklearn.ensemble import (
     GradientBoostingRegressor, RandomForestRegressor,
@@ -29,17 +31,32 @@ from mlprodict.onnxrt import OnnxInference
 
 # import Py3GUI swlda
 from swlda import swlda
-# import vanilla lda
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
+import matplotlib.pyplot as plt
+
+from sklearn import datasets
+# import vanilla lda
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+
+from sklearn.model_selection import train_test_split
 
 # load synthetic data
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, LogLevels
 
 # load EEG data - what does the data look like?
-def load_txt_data():
 
+# TODO LOAD DATASET USING
+
+# url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+# names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'Class']
+# dataset = pd.read_csv(url, names=names) # Returns a DF
+
+def load_csv_data():
+    pass
+def load_txt_data():
+    pass
 def load_xdf_data():
+    pass
 
 def data_loader(file_name, window, file_type = None, window_in_samples = False):
     if file_type == None:
@@ -49,22 +66,58 @@ def data_loader(file_name, window, file_type = None, window_in_samples = False):
             file_type = 'xdf'
     
     elif file_type == 'txt':
+        pass
 
     elif file_type == 'xdf':
-    
+        pass
     else
         return '%s file type not supported.' % str(file_type)
 
+iris = datasets.load_iris()
 
-# X, y = load_diabetes(return_X_y=True)
-X_train, X_test, y_train, y_test = train_test_split(X, y)
+# Preprocess data
+# example data from https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
+# X = dataset.iloc[:, 0:4].values # train and test data
+# TODO Question: Labels will be P300 active/inactive, rows/columns or letters?
+# y = dataset.iloc[:, 4].values # label and features
 
+X = iris.data
+print(X)
 
-# call classifiers
+y = iris.target
+print(y)
+target_names = iris.target_names
 
-swlda = swlda()
+# Define number of components
+# num_components = len(list(set(y)))-1
 
-lda = LinearDiscriminantAnalysis()
+# NOTE If needed
+# Separate data into correct categories
+# TODO Check test_size and other params
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# NOTE If needed
+# feature scaling
+# from sklearn.preprocessing import StandardScaler
+# sc = StandardScaler()
+# X_train = sc.fit_transform(X_train)
+# X_test = sc.transform(X_test)
+
+# Create model
+lda = LDA(n_components=num_components)
+X_r2 = lda.fit(X, y).transform(X)
+print("Done")
+
+# Plot (temporary)
+plt.figure()
+for c, i, target_name in zip("rgb", [0, 1, 2], target_names):
+    plt.scatter(X_r2[y == i, 0], X_r2[y == i, 1], c=c, label=target_name)
+plt.legend()
+plt.title('LDA of IRIS dataset')
+
+plt.show()
+
+# swlda = swlda()
 
 # Train classifiers
 
@@ -87,7 +140,7 @@ lda = LinearDiscriminantAnalysis()
 # into single float and ONNX runtimes may not fully
 # support doubles.
 
-onx = to_onnx(ereg, X_train[:1].astype(np.float32),
+onx = to_onnx(lda, X_train[:1].astype(np.float32),
               target_opset=12)
 
 ###################################
@@ -141,8 +194,8 @@ onx = to_onnx(ereg, X_train[:1].astype(np.float32),
 # useful to investigate why the conversion went wrong.
 # It uses module :epkg:`mlprodict`.
 
-# oinf = OnnxInference(onx, runtime="python_compiled")
-# print(oinf)
+oinf = OnnxInference(onx, runtime="python_compiled")
+print(oinf)
 
 ##########################################
 # It works almost the same way.
